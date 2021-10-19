@@ -1,0 +1,25 @@
+//test for the connection with processing to turn on an LED with NeuroSky
+
+char val;
+int testLED       = 7;
+
+
+
+void setup() {
+
+  // Begin Serial communication at 115200 baud
+  pinMode( testLED, OUTPUT);
+  Serial.begin( 115200 );
+}
+
+void loop() {
+  // When there is an Serial connection available, get the values
+  if ( Serial.available()) {
+   val = Serial.read();
+  }
+  if (val /= 0) {
+    digitalWrite(testLED, HIGH);
+  }
+  delay(10);
+
+}
