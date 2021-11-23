@@ -1,0 +1,102 @@
+// Wiring/Arduino code:
+// Read data from the serial and turn ON or OFF a light depending on the value
+#include <Servo.h>
+
+Servo arm;
+
+int pos = 0;    // variable to store the servo position
+byte attcmd; // Data received from the serial port
+int ledForce = 8; // Set the pin to digital I/O 4
+int ledStable = 7;
+
+enum states {
+  STABLE,
+  FORCE
+};
+
+states state;
+int force_time;
+int force_count;
+
+void setup() {
+  pinMode(ledForce, OUTPUT); // Set pin as OUTPUT
+  pinMode(ledStable, OUTPUT);
+  Serial.begin(9600); // Start serial communication at 9600 bps
+  arm.attach(4); // attaches the servo on pin 9 to the servo object
+
+  state = STABLE;
+}
+
+void loop() {
+
+  switch (state) {
+    case STABLE:
+      while (Serial.available()) { // If data is available to read,
+        attcmd = Serial.read(); // read it and store it in attcmd
+      }
+
+      digitalWrite(ledStable, HIGH);
+      digitalWrite(ledForce, LOW);
+
+      if (attcmd == 0) { // If attention level is eual to 0
+        arm.write(0); // Move arm 0
+        delay(15);
+      }
+      if (attcmd > 10) { // If attention level is eual to 10
+        arm.write(20); // Move arm 20 degrees
+        delay(15);
+      }
+      if (attcmd > 20) {
+        arm.write(45);
+        delay(15);
+      }
+      if (attcmd > 45) {
+        arm.write(60);
+        delay(15);
+      }
+      if (attcmd > 60) {
+        arm.write(90);
+        delay(15);
+        state = FORCE;
+      }
+      if (attcmd > 80) {
+        arm.write(120);
+        delay(15);
+        state = FORCE;
+      }
+      if (attcmd > 90) {
+        arm.write(180);
+        delay(15);
+        state = FORCE;
+      }
+      delay(50); // Wait 100 milliseconds for next reading
+
+      break;
+
+    case FORCE:
+      while (Serial.available()) { // If data is available to read,
+        attcmd = Serial.read(); // read it and store it in attcmd
+      }
+
+      digitalWrite(ledStable, LOW);
+      digitalWrite(ledForce, HIGH);
+       if (attcmd > 60) {
+        arm.write(90);
+        delay(15);
+      }
+      if (attcmd > 80) {
+        arm.write(120);
+        delay(15);
+      }
+      if (attcmd > 90) {
+        arm.write(180);
+        delay(15);
+      }
+        if (attcmd < 60) {
+        state = STABLE;
+      }
+      delay(50); // Wait 100 milliseconds for next reading
+      
+      break;
+  }
+}
